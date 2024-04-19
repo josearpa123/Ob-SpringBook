@@ -2,6 +2,7 @@ package com.example.obrestdatajpa.controller;
 
 import com.example.obrestdatajpa.entities.Book;
 import com.example.obrestdatajpa.repository.BookRepository;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -50,8 +51,9 @@ public class BookController {
       }
     //crear un nuevo libro en base de datos
     @PostMapping("/api/books")
-    public Book create(@RequestBody Book book){
+    public Book create(@RequestBody Book book, @RequestHeader HttpHeaders Headers){
         //Guardar libro recibido por parametro en la base de datos
+        System.out.println(Headers.get("User-Agent"));
         return bookRepository.save(book);
     }
     //actualizar un libro existente en base de datos
