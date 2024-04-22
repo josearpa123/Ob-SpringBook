@@ -2,6 +2,8 @@ package com.example.obrestdatajpa.controller;
 
 import com.example.obrestdatajpa.entities.Book;
 import com.example.obrestdatajpa.repository.BookRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,6 +13,8 @@ import java.util.Optional;
 
 @RestController
 public class BookController {
+
+    private final Logger log = LoggerFactory.getLogger(BookController.class);
     //Atributos
     private BookRepository bookRepository;
     //Constructores
@@ -22,7 +26,7 @@ public class BookController {
 
     //CRUD sobre la entidad Book
 
-    //Buscar todos los libros(Lista de libros)
+    //Buscar todos los libros que hay en bases de datos(arraylist(Lista de libros)
     @GetMapping("/api/books")
     public List<Book> findAll(){
         //recuperar y devolver los libros de base base de datos
@@ -49,14 +53,61 @@ public class BookController {
         //opcion 2 = hace lo mismo que la primera opcion
         //return booOpt.orElse(null);
       }
+
+    /**
+     * Crear un nuevo libro en base de datos
+     *Metodo POST, no colisiona con FindAll porque son diferentes metodos HTTP
+     * @param book
+     * @param Headers
+     * @return
+     */
     //crear un nuevo libro en base de datos
     @PostMapping("/api/books")
-    public Book create(@RequestBody Book book, @RequestHeader HttpHeaders Headers){
+    public ResponseEntity<Book> create(@RequestBody Book book, @RequestHeader HttpHeaders Headers){
         //Guardar libro recibido por parametro en la base de datos
         System.out.println(Headers.get("User-Agent"));
-        return bookRepository.save(book);
+        if (book.getId() != null) {//Quiere decir que el id existe y por lo tanto no es una creacion
+            log.warn("trying to creaare a book with id");
+            System.out.println("trying to creaare a book with id");
+            return ResponseEntity.badRequest().build();
+        }
+        Book result = bookRepository.save(book);
+        return ResponseEntity.ok(result);//se genera el libro devuelto con la primary key
     }
+
+    /**
+     * Actualizar un libro en bases de datos
+     */
     //actualizar un libro existente en base de datos
-    //borrar un libro en base de datos
+    @PutMapping("/api/books")
+    public ResponseEntity<Book> update(@RequestBody Book book){
+        if (book.getId() == null){//si no tiene id quiere decir que si es una creacion
+            log.warn("Trying to update a non ecistent book");
+            return ResponseEntity.badRequest().build();
+        }
+        if (!bookRepository.existsById(book.getId())){
+            log.warn("Trying to update a non existent book");
+            return ResponseEntity.notFound().build();
+        }
+        Book result = bookRepository.save(book);
+       // return bookRepository.save(book);
+        return ResponseEntity.ok(result);
+    }
+    @DeleteMapping("/api/books/{id}")//borrar un libro en base de datos
+    public ResponseEntity<Book> deleted(@PathVariable Long id){
+        if (!bookRepository.existsById(id)){
+            log.warn("Trying to delete a non existent book");
+            return ResponseEntity.notFound().build();
+        }
+        bookRepository.deleteById(id);
+        return ResponseEntity.noContent().build();
+
+    }
+    @DeleteMapping("/api/books")
+    public ResponseEntity<Book> Deleteall(){
+        log.info("REST Request for deleta all books");
+        bookRepository.deleteAll();
+        return ResponseEntity.noContent().build();
+    }
 
 }
