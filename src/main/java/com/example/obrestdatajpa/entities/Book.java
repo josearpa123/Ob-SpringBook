@@ -1,5 +1,6 @@
 package com.example.obrestdatajpa.entities;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.*;
 
 import java.time.LocalDate;
@@ -9,10 +10,12 @@ public class Book {
     //Atributo
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Schema(description = "Clave ficticia autoincremental tipo Long")
     private Long id;
     private String title;
     private  String author;
     private Integer pages;
+    @Schema(description = "Precion en  rupias, con dos decimeales utilizando . como separador")
     private Double price;
     private LocalDate realseDate;
     private Boolean online;
